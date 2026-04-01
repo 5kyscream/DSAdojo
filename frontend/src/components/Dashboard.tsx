@@ -7,6 +7,12 @@ import { supabase } from '../lib/supabase';
 export default function Dashboard() {
   const [username, setUsername] = useState('AGENT');
   const [level, setLevel] = useState('CALIBRATING');
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -53,10 +59,16 @@ export default function Dashboard() {
           
           <div className="flex justify-between items-end mb-8 border-b-2 border-surface pb-4">
             <h2 className="font-display font-black text-3xl tracking-widest text-primary uppercase">[ INSIGHTS ]</h2>
-            <div className="flex gap-6 text-lavender/50">
-              <Activity className="w-8 h-8 hover:text-primary transition-colors cursor-pointer" />
-              <Target className="w-8 h-8 hover:text-primary transition-colors cursor-pointer" />
-              <Zap className="w-8 h-8 hover:text-primary transition-colors cursor-pointer" />
+            <div className="flex gap-6 items-center text-lavender/50">
+              <button 
+                onClick={handleLogout} 
+                className="font-mono text-[10px] font-bold text-primary border border-primary/50 px-3 py-1 hover:bg-primary hover:text-black transition-colors mr-2 clip-chamfer"
+              >
+                [PURGE_SESSION]
+              </button>
+              <Activity className="w-6 h-6 hover:text-primary transition-colors cursor-pointer" />
+              <Target className="w-6 h-6 hover:text-primary transition-colors cursor-pointer" />
+              <Zap className="w-6 h-6 hover:text-primary transition-colors cursor-pointer" />
             </div>
           </div>
           
