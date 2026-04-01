@@ -32,6 +32,11 @@ export default function Landing() {
     }
   };
 
+  const handleOAuth = async (provider: 'github' | 'google') => {
+    const { error } = await supabase.auth.signInWithOAuth({ provider });
+    if (error) setErrorLine(error.message);
+  };
+
   const handleLevelSelect = async (level: string) => {
     await supabase.auth.updateUser({ data: { level } });
     navigate('/dashboard');
@@ -81,9 +86,26 @@ export default function Landing() {
 
             {errorLine && <span className="font-mono text-xs text-primary">{'>_ ERROR: '} {errorLine}</span>}
 
-            <button type="submit" className="bg-primary text-black font-display font-bold text-xl py-4 clip-chamfer hover:scale-[1.02] transition-transform w-full flex justify-center items-center gap-2">
+            <button type="submit" className="bg-primary text-black font-display font-bold text-xl py-4 clip-chamfer hover:scale-[1.02] transition-transform w-full flex justify-center items-center gap-2 mt-2">
               {step === 'SIGNUP' ? 'REGISTER' : 'AUTHENTICATE'} <ChevronRight className="w-5 h-5" />
             </button>
+
+            <div className="flex gap-4">
+              <button 
+                type="button" 
+                onClick={() => handleOAuth('github')} 
+                className="flex-1 bg-surface border border-surface hover:border-text-muted p-3 font-mono text-[10px] tracking-widest font-bold text-text-muted transition-colors clip-chamfer"
+              >
+                [GITHUB_OAUTH]
+              </button>
+              <button 
+                type="button" 
+                onClick={() => handleOAuth('google')} 
+                className="flex-1 bg-surface border border-surface hover:border-text-muted p-3 font-mono text-[10px] tracking-widest font-bold text-text-muted transition-colors clip-chamfer"
+              >
+                [GOOGLE_OAUTH]
+              </button>
+            </div>
 
             <button 
               type="button" 

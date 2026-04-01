@@ -1,10 +1,35 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Terminal, Crosshair, Users, Code, Info } from 'lucide-react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 export default function GlobalShell() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session && location.pathname !== '/') {
+        navigate('/');
+      }
+      setAuthChecked(true);
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session && location.pathname !== '/') {
+        navigate('/');
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [location.pathname, navigate]);
+
+  if (!authChecked) return <div className="min-h-screen bg-background" />;
+
 
   return (
     <div className="min-h-screen bg-background text-text-main flex flex-col font-sans relative overflow-hidden">
