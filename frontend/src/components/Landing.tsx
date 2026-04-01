@@ -33,7 +33,12 @@ export default function Landing() {
   };
 
   const handleOAuth = async (provider: 'github' | 'google') => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider });
+    const { error } = await supabase.auth.signInWithOAuth({ 
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}`
+      }
+    });
     if (error) setErrorLine(error.message);
   };
 
