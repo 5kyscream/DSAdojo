@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { io, Socket } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 // Connect to local backend
 const socket: Socket = io('http://localhost:4000');
@@ -16,6 +17,13 @@ export default function Arena() {
   const [userId] = useState(`USER_${Math.floor(Math.random() * 9000) + 1000}`);
 
   useEffect(() => {
+    // Security Guard: Force unauthenticated users back to the landing page
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        navigate('/');
+      }
+    });
+
     if (!topic) return;
 
     socket.emit('JOIN_QUEUE', { userId, elo: 1540, topic });
