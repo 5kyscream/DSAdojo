@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +10,24 @@ export default function Landing() {
   const [password, setPassword] = useState('');
   const [errorLine, setErrorLine] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        if (!session.user?.user_metadata?.level) setStep('ONBOARDING');
+        else navigate('/dashboard');
+      }
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        if (!session.user?.user_metadata?.level) setStep('ONBOARDING');
+        else navigate('/dashboard');
+      }
+    });
+
+    return () => authListener.subscription.unsubscribe();
+  }, [navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
