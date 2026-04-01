@@ -1,0 +1,62 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id               String          @id @default(uuid())
+  username         String          @unique
+  passwordHash     String
+  elo              Int             @default(1200)
+  level            String?         // "Beginner", "Intermediate", "Professional"
+  createdAt        DateTime        @default(now())
+  topicStats       UserTopicStat[]
+  submissions      Submission[]
+}
+
+model UserTopicStat {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  topic          String   // e.g., "Graphs", "DP"
+  score          Float    @default(50.0) // 0-100 proficiency score based on time
+  averageTimeMs  Int      @default(0)
+  solveCount     Int      @default(0)
+}
+
+model Problem {
+  id             String   @id @default(uuid())
+  title          String
+  topic          String
+  difficulty     String
+  expectedTimeMs Int      // AI benchmark for comparison!
+  description    String
+  codeTemplate   String
+  matches        Match[]
+  submissions    Submission[]
+}
+
+model Match {
+  id             String   @id @default(uuid())
+  problemId      String
+  problem        Problem  @relation(fields: [problemId], references: [id])
+  player1Id      String
+  player2Id      String
+  winnerId       String?
+  createdAt      DateTime @default(now())
+}
+
+model Submission {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  problemId      String
+  problem        Problem  @relation(fields: [problemId], references: [id])
+  status         String   // "ACCEPTED", "WRONG_ANSWER"
+  timeTakenMs    Int      @default(0)
+  createdAt      DateTime @default(now())
+}

@@ -1,0 +1,48 @@
+# ==========================================
+# Frontend Dockerfile (TargetPath: Dockerfile.frontend)
+# ==========================================
+FROM node:20-alpine AS builder
+# Using Alpine for minimal footprint
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+# Building production optimized bundle
+RUN npm run build
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
+EXPOSE 3000
+CMD ["npm", "start"]
+
+# ==========================================
+# Backend Dockerfile (TargetPath: Dockerfile.backend)
+# ==========================================
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
+EXPOSE 4000
+CMD ["node", "dist/main.js"]
+
+# ==========================================
+# ML AI Mentor Dockerfile (TargetPath: Dockerfile.ml)
+# ==========================================
+FROM python:3.10-slim
+WORKDIR /app
+# Installing PyTorch minimal footprint
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 8000
+# Run scalable Uvicorn workers
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
