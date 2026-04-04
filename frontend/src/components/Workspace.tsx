@@ -2,7 +2,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import { io, Socket } from 'socket.io-client';
 
-const socket: Socket = io('http://localhost:4000');
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || `${window.location.protocol}//${window.location.hostname}:4000`;
+const socket: Socket = io(BACKEND_URL);
 
 export default function Workspace() {
   const [problem, setProblem] = useState<any>(null);
