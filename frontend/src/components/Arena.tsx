@@ -4,7 +4,7 @@ import { io, Socket } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || `${window.location.protocol}//${window.location.hostname}:4000`;
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://vwjmj-115-245-68-163.run.pinggy-free.link';
 const socket: Socket = io(BACKEND_URL);
 
 const TOPICS = ['GRAPHS', 'DYNAMIC_PROGRAMMING', 'ARRAYS', 'RANDOM'];
