@@ -43,6 +43,9 @@ io.on('connection', (socket: Socket) => {
   socket.on('JOIN_QUEUE', (data: { userId: string; elo: number, topic: string }) => {
     console.log(`[QUEUE] User ${data.userId} (Topic: ${data.topic}) joined queue.`);
     
+    // Fix: Remove any existing entries for this socket to prevent React StrictMode double join
+    matchQueue = matchQueue.filter(p => p.socketId !== socket.id);
+
     matchQueue.push({
       socketId: socket.id,
       userId: data.userId,
@@ -52,9 +55,10 @@ io.on('connection', (socket: Socket) => {
 
     evaluateQueue(data.topic);
 
-    // Inject ghost opponent for testing specific topic
+    // Inject ghost opponent for testing specific topic if waiting too long
     const currentQueue = matchQueue.filter(p => p.topic === data.topic);
     if (currentQueue.length === 1) {
+      // Increase timeout from 3000ms to 20000ms to allow friends to actually match each other
       setTimeout(() => {
         const checkQueue = matchQueue.filter(p => p.topic === data.topic);
         if (checkQueue.length === 1 && checkQueue[0].socketId === socket.id) {
@@ -62,7 +66,7 @@ io.on('connection', (socket: Socket) => {
           matchQueue.push({ socketId: 'ghost_socket', userId: 'AI_BOT_ZERO', elo: 1550, topic: data.topic });
           evaluateQueue(data.topic);
         }
-      }, 3000);
+      }, 20000); // 20 seconds wait before bot match
     }
   });
 
@@ -179,5 +183,5 @@ app.get('/api/health', (req, res) => {
 
 const PORT = 4000;
 httpServer.listen(PORT, () => {
-  console.log(`[SYS] DSABuddy Backend & WS Gateway listening on port ${PORT}`);
+  console.log(`[SYS] DSADojo Backend & WS Gateway listening on port ${PORT}`);
 });

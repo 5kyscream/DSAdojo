@@ -5,7 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://vwjmj-115-245-68-163.run.pinggy-free.link';
-const socket: Socket = io(BACKEND_URL);
+const socket: Socket = io(BACKEND_URL, {
+  transports: ['websocket'],
+  upgrade: false
+});
 
 const TOPICS = ['GRAPHS', 'DYNAMIC_PROGRAMMING', 'ARRAYS', 'RANDOM'];
 
