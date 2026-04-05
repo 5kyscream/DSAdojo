@@ -1,7 +1,7 @@
-# Complete System Architecture: DSAbuddy Platform
+# Complete System Architecture: DSADojo Platform
 
 ## High-Level Overview
-DSAbuddy is built as a highly scalable, microservices-based platform designed to handle 1,000+ concurrent users with real-time matchmaking, live AI-based feedback, and secure code execution.
+DSADojo is built as a highly scalable, microservices-based platform designed to handle 1,000+ concurrent users with real-time matchmaking, live AI-based feedback, and secure code execution.
 
 The system is broken down into modular services orchestrated via Kubernetes (K8s) and communicating efficiently via an API Gateway and Event Bus (Kafka/RabbitMQ).
 

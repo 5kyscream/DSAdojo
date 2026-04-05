@@ -1,6 +1,6 @@
 # Backend Architecture Document
 
-This document outlines the detailed backend architecture of the DSAbuddy platform, built using modern containerized microservices.
+This document outlines the detailed backend architecture of the DSADojo platform, built using modern containerized microservices.
 
 ## ⚙️ Core Technology Stack
 - **API Gateway:** Kong or Nginx (Rate limiting, WebSockets, Auth translation).

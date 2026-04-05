@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dsabuddy-frontend
+  name: dsadojo-frontend
   labels:
     app: frontend
 spec:
@@ -15,8 +15,8 @@ spec:
         app: frontend
     spec:
       containers:
-      - name: dsabuddy-frontend
-        image: dsabuddy/frontend:latest
+      - name: dsadojo-frontend
+        image: dsadojo/frontend:latest
         ports:
         - containerPort: 3000
         resources:
@@ -44,7 +44,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dsabuddy-backend
+  name: dsadojo-backend
   labels:
     app: backend-core
 spec:
@@ -59,7 +59,7 @@ spec:
     spec:
       containers:
       - name: backend-core
-        image: dsabuddy/backend-nestjs:latest
+        image: dsadojo/backend-nestjs:latest
         ports:
         - containerPort: 4000
         env:

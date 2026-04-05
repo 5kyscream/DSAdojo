@@ -1,0 +1,5 @@
+e5bdf84 - 5kyscream, prathmeshraghuvanshi23@gmail.com, Sun Apr 5 18:40:26 2026 +0530 : Fix matchmaking logic and transport for cross-network connectivity
+1743787 - 5kyscream, prathmeshraghuvanshi23@gmail.com, Sun Apr 5 18:32:58 2026 +0530 : Emergency: Take down site
+23c4ee4 - 5kyscream, prathmeshraghuvanshi23@gmail.com, Sun Apr 5 04:30:21 2026 +0530 : chore: temporary public pinggy websocket for global testing
+4dc8ade - 5kyscream, prathmeshraghuvanshi23@gmail.com, Sun Apr 5 02:50:11 2026 +0530 : fix(matchmaking): dynamically resolve socket backend url
+5193494 - 5kyscream, prathmeshraghuvanshi23@gmail.com, Thu Apr 2 04:07:52 2026 +0530 : fix(auth): intercept inbound OAuth callback hashes and redirect securely to dashboard

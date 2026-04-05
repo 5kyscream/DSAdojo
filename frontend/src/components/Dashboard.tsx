@@ -24,7 +24,7 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="flex-1 bg-background relative overflow-hidden flex text-text-main h-[calc(100vh-100px)]">
+    <div className="flex-1 bg-background relative overflow-hidden flex text-text-main w-full h-full">
       {/* Background Graphic Elements */}
       <div className="absolute inset-0 grid grid-cols-2 pointer-events-none">
         <div className="bg-background"></div>

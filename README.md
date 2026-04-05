@@ -1,4 +1,4 @@
-# DSABuddy - Tactical Practice Platform
+# DSADojo - Tactical Practice Platform
 
 A high-performance, scalable Data Structures and Algorithms (DSA) practice platform. The architecture features an AI-driven personalized learning loop, real-time ELO-based matchmaking, and a secure code execution environment. 
 
