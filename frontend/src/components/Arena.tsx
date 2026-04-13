@@ -1,16 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { io, Socket } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { socket } from '../lib/socket';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://vwjmj-115-245-68-163.run.pinggy-free.link';
-const socket: Socket = io(BACKEND_URL, {
-  transports: ['websocket'],
-  upgrade: false
-});
-
-const TOPICS = ['GRAPHS', 'DYNAMIC_PROGRAMMING', 'ARRAYS', 'RANDOM'];
+const TOPICS = ['GRAPHS', 'DYNAMIC_PROGRAMMING', 'ARRAYS', 'TREES', 'LINKED_LISTS', 'STRINGS', 'RANDOM'];
 
 export default function Arena() {
   const [matchFound, setMatchFound] = useState(false);
@@ -55,7 +49,14 @@ export default function Arena() {
         </h1>
         <div className="grid grid-cols-2 gap-6 w-full max-w-2xl">
           {TOPICS.map(t => (
-            <button key={t} onClick={() => setTopic(t)} className="border-2 brutalist-border p-8 border-surface text-center font-mono text-xl text-text-muted hover:text-black hover:bg-primary hover:border-primary transition-colors cursor-pointer clip-chamfer group">
+            <button key={t} onClick={() => {
+              let selectedTopic = t;
+              if (t === 'RANDOM') {
+                const otherTopics = TOPICS.filter(opt => opt !== 'RANDOM');
+                selectedTopic = otherTopics[Math.floor(Math.random() * otherTopics.length)];
+              }
+              setTopic(selectedTopic);
+            }} className="border-2 brutalist-border p-8 border-surface text-center font-mono text-xl text-text-muted hover:text-black hover:bg-primary hover:border-primary transition-colors cursor-pointer clip-chamfer group">
               {t}
               <div className="text-xs font-bold mt-2 opacity-0 group-hover:opacity-100">{'>_'} INITIALIZE</div>
             </button>

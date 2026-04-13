@@ -21,7 +21,10 @@ const io = new Server(httpServer, {
 const PROBLEMS = [
   { id: 'P1', title: 'Node Penetration', topic: 'GRAPHS', expectedTimeMs: 600000, desc: 'Find the shortest path to the core memory sector bypassing firewalls.', constraints: ['V <= 1000', 'Time: 1.5s'] },
   { id: 'P2', title: 'Memory Fragmentation', topic: 'ARRAYS', expectedTimeMs: 300000, desc: 'Defragment a continuous block of physical memory sectors in place.', constraints: ['N <= 10^5', 'Space: O(1)'] },
-  { id: 'P3', title: 'Subnet Routing', topic: 'DYNAMIC_PROGRAMMING', expectedTimeMs: 1200000, desc: 'Maximize the total bandwidth routed through recursive subnets without exceeding node limits.', constraints: ['Edges <= 50000'] }
+  { id: 'P3', title: 'Subnet Routing', topic: 'DYNAMIC_PROGRAMMING', expectedTimeMs: 1200000, desc: 'Maximize the total bandwidth routed through recursive subnets without exceeding node limits.', constraints: ['Edges <= 50000'] },
+  { id: 'P4', title: 'Binary Tree Inversion', topic: 'TREES', expectedTimeMs: 300000, desc: 'Invert a binary data structure to bypass access authorization.', constraints: ['Nodes <= 10^4'] },
+  { id: 'P5', title: 'Cycle Detection Protocol', topic: 'LINKED_LISTS', expectedTimeMs: 400000, desc: 'Detect infinite loops within linear memory sequence pointers.', constraints: ['Nodes <= 10^4'] },
+  { id: 'P6', title: 'Palindrome Substring Extraction', topic: 'STRINGS', expectedTimeMs: 500000, desc: 'Find the longest symmetric payload embedded within a data string.', constraints: ['Length <= 1000'] }
 ];
 
 const userProficiency: Record<string, Record<string, { attempts: number, totalTime: number }>> = {};
@@ -55,19 +58,6 @@ io.on('connection', (socket: Socket) => {
 
     evaluateQueue(data.topic);
 
-    // Inject ghost opponent for testing specific topic if waiting too long
-    const currentQueue = matchQueue.filter(p => p.topic === data.topic);
-    if (currentQueue.length === 1) {
-      // Increase timeout from 3000ms to 20000ms to allow friends to actually match each other
-      setTimeout(() => {
-        const checkQueue = matchQueue.filter(p => p.topic === data.topic);
-        if (checkQueue.length === 1 && checkQueue[0].socketId === socket.id) {
-          console.log(`[SYS] Injecting Ghost Opponent for map: ${data.topic}.`);
-          matchQueue.push({ socketId: 'ghost_socket', userId: 'AI_BOT_ZERO', elo: 1550, topic: data.topic });
-          evaluateQueue(data.topic);
-        }
-      }, 20000); // 20 seconds wait before bot match
-    }
   });
 
   // 1.5 AI Practice Dispenser
