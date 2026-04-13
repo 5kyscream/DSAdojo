@@ -172,6 +172,6 @@ app.get('/api/health', (req, res) => {
 });
 
 const PORT = 4000;
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`[SYS] DSADojo Backend & WS Gateway listening on port ${PORT}`);
 });
