@@ -1,3 +1,4 @@
+import { GoogleGenAI } from '@google/genai';
 import express from 'express';
 import { createServer } from 'http';
 import { Server, Socket } from 'socket.io';
@@ -16,6 +17,10 @@ const io = new Server(httpServer, {
     methods: ['GET', 'POST']
   }
 });
+
+// Initialize Gemini AI from the secure .env key
+const ai_key = process.env.GEMINI_API_KEY;
+const ai = ai_key ? new GoogleGenAI({ apiKey: ai_key }) : null;
 
 // Mock Problem Database & AI Proficiency Stats
 const PROBLEMS = [
@@ -91,11 +96,12 @@ io.on('connection', (socket: Socket) => {
   });
 
   // 2. Code Execution Mock Runtime Listener
-  socket.on('SUBMIT_CODE', (data: { code: string; problemId: string, userId: string, timeSpent: number }) => {
+  socket.on('SUBMIT_CODE', async (data: { code: string; problemId: string, userId: string, timeSpent: number }) => {
     console.log(`[EXEC] Running task ${data.problemId} for ${data.userId} - Time: ${data.timeSpent}s`);
     
+    const prob = PROBLEMS.find(p => p.id === data.problemId) || PROBLEMS[0];
+
     // Store analytics
-    const prob = PROBLEMS.find(p => p.id === data.problemId);
     if (prob) {
       if (!userProficiency[data.userId]) userProficiency[data.userId] = {};
       if (!userProficiency[data.userId][prob.topic]) userProficiency[data.userId][prob.topic] = { attempts: 0, totalTime: 0 };
@@ -108,16 +114,30 @@ io.on('connection', (socket: Socket) => {
     setTimeout(() => socket.emit('EXEC_LOG', { msg: '[SYS] Container spun up successfully' }), 500);
     setTimeout(() => socket.emit('EXEC_LOG', { msg: '[SYS] Compiling...' }), 1000);
     
-    // Pattern match mock AI logic
-    setTimeout(() => {
+    // Process Execution & AI Hint (Requires awaits, so wrapping in internal async timeout resolver isn't perfect, just inline await with delay)
+    setTimeout(async () => {
       if (data.code.includes('return true')) {
         socket.emit('EXEC_RESULT', { status: 'ACCEPTED', time: '14ms', mem: '42MB' });
       } else {
         socket.emit('EXEC_RESULT', { status: 'WRONG_ANSWER', msg: 'Failed testcase 12/54' });
-        // Trigger AI Mentor response
-        socket.emit('AI_MENTOR_HINT', { 
-            hint: 'Your logic misses the edge case where the graph has disconnected components. Consider adding a visited set.' 
-        });
+        
+        if (ai) {
+            socket.emit('AI_MENTOR_HINT', { hint: '[AI] Uplink established. Analyzing combat logic...' });
+            try {
+                const prompt = `You are an elite Cyberpunk DSA mentor. The user submitted this code for the problem "${prob.title}" (Topic: ${prob.topic}).\n\nProblem Description: ${prob.desc}\nConstraints: ${prob.constraints.join(', ')}\n\nUser's Code:\n${data.code}\n\nThe code failed execution. Provide exactly ONE concise hint (max 2 sentences) to point them in the right direction. Do NOT write the code answer for them. Keep the tone sharp, professional, and cyberpunk-styled.`;
+                const response = await ai.models.generateContent({
+                    model: 'gemini-2.5-flash',
+                    contents: prompt
+                });
+                socket.emit('AI_MENTOR_HINT', { hint: response.text });
+            } catch (err) {
+                console.error("[AI ERROR] Failed to fetch Gemini hint.", err);
+                socket.emit('AI_MENTOR_HINT', { hint: 'Mentor uplink severed. AI API failed to respond. Check API Key or Quota.' });
+            }
+        } else {
+            console.error("[AI ERROR] No GEMINI_API_KEY provided.");
+            socket.emit('AI_MENTOR_HINT', { hint: 'Mentor offline. No GEMINI_API_KEY detected in backend environment.' });
+        }
       }
     }, 2000);
   });
