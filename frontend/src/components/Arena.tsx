@@ -1,10 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { socket } from '../lib/socket';
+import Editor from '@monaco-editor/react';
 
 const TOPICS = ['GRAPHS', 'DYNAMIC_PROGRAMMING', 'ARRAYS', 'TREES', 'LINKED_LISTS', 'STRINGS', 'RANDOM'];
+
+const PROBLEMS = [
+  { id: 'P1', title: 'Node Penetration', topic: 'GRAPHS', difficulty: 'HARD', expectedTimeMs: 600000, desc: 'Find the shortest path to the core memory sector bypassing firewalls.', constraints: ['V <= 1000', 'Time: 1.5s'] },
+  { id: 'P2', title: 'Memory Fragmentation', topic: 'ARRAYS', difficulty: 'EASY', expectedTimeMs: 300000, desc: 'Defragment a continuous block of physical memory sectors in place.', constraints: ['N <= 10^5', 'Space: O(1)'] },
+  { id: 'P3', title: 'Subnet Routing', topic: 'DYNAMIC_PROGRAMMING', difficulty: 'HARD', expectedTimeMs: 1200000, desc: 'Maximize the total bandwidth routed through recursive subnets without exceeding node limits.', constraints: ['Edges <= 50000'] },
+  { id: 'P4', title: 'Binary Tree Inversion', topic: 'TREES', difficulty: 'EASY', expectedTimeMs: 300000, desc: 'Invert a binary data structure to bypass access authorization.', constraints: ['Nodes <= 10^4'] },
+  { id: 'P5', title: 'Cycle Detection Protocol', topic: 'LINKED_LISTS', difficulty: 'MEDIUM', expectedTimeMs: 400000, desc: 'Detect infinite loops within linear memory sequence pointers.', constraints: ['Nodes <= 10^4'] },
+  { id: 'P6', title: 'Palindrome Substring Extraction', topic: 'STRINGS', difficulty: 'MEDIUM', expectedTimeMs: 500000, desc: 'Find the longest symmetric payload embedded within a data string.', constraints: ['Length <= 1000'] }
+];
 
 export default function Arena() {
   const [matchFound, setMatchFound] = useState(false);
@@ -14,12 +24,17 @@ export default function Arena() {
   const navigate = useNavigate();
   const [userId] = useState(`USER_${Math.floor(Math.random() * 9000) + 1000}`);
 
+  // New Battle States
+  const [battleStarted, setBattleStarted] = useState(false);
+  const [activeProblem, setActiveProblem] = useState<any>(null);
+  const [code, setCode] = useState(`function executeMatch(data) {\n  // DEFEAT YOUR OPPONENT\n  return false;\n}`);
+  const [logs, setLogs] = useState<string[]>(['[ARENA SYS] Match initialized. Link established.']);
+  const logsEndRef = useRef<HTMLDivElement>(null);
+  const [matchTime, setMatchTime] = useState(0);
+
   useEffect(() => {
-    // Security Guard: Force unauthenticated users back to the landing page
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        navigate('/');
-      }
+      if (!session) navigate('/');
     });
 
     if (!topic) return;
@@ -29,6 +44,11 @@ export default function Arena() {
     socket.on('MATCH_FOUND', (data) => {
       setOpponent(data.opponent);
       setMatchFound(true);
+      
+      // Auto-pick problem based on topic for the match
+      const p = PROBLEMS.find(p => p.topic === topic) || PROBLEMS[0];
+      setActiveProblem(p);
+      setCode(`function executeMatch(data) {\n  // Target: ${p.title}\n  // Write your logic here\n  return false;\n}`);
     });
 
     const timer = setInterval(() => setQueueTime(t => t + 1), 1000);
@@ -39,7 +59,51 @@ export default function Arena() {
     };
   }, [topic, userId]);
 
-  const formatTime = (s: number) => `00:${s.toString().padStart(2, '0')}`;
+  // Battle Match Timer
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (battleStarted) {
+      interval = setInterval(() => setMatchTime(t => t + 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [battleStarted]);
+
+  // Exec Logs hook
+  useEffect(() => {
+    const handleLog = (data: any) => setLogs(prev => [...prev, data.msg]);
+    const handleResult = (data: any) => {
+      setLogs(prev => [...prev, `[RESULT] ${data.status} | Time: ${data.time || 'N/A'} | Mem: ${data.mem || 'N/A'}`]);
+      if (data.msg) setLogs(prev => [...prev, `[INFO] ${data.msg}`]);
+    };
+
+    socket.on('EXEC_LOG', handleLog);
+    socket.on('EXEC_RESULT', handleResult);
+
+    return () => {
+      socket.off('EXEC_LOG', handleLog);
+      socket.off('EXEC_RESULT', handleResult);
+    };
+  }, []);
+
+  useEffect(() => {
+    logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [logs]);
+
+  const handleRunCode = () => {
+    setLogs(['[ARENA SYS] Executing combat logic...']);
+    socket.emit('SUBMIT_CODE', { 
+      code, 
+      problemId: activeProblem?.id || 'P1',
+      userId,
+      timeSpent: matchTime
+    });
+  };
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
 
   if (!topic) {
     return (
@@ -66,22 +130,124 @@ export default function Arena() {
     );
   }
 
+  // ==== BATTLE SCREEN ====
+  if (battleStarted && activeProblem) {
+    return (
+      <div className="flex-1 w-full h-full flex flex-col bg-background overflow-hidden relative">
+        {/* Battle Header */}
+        <div className="bg-primary text-black p-4 flex justify-between items-center border-b border-black">
+          <div className="flex flex-col">
+            <span className="font-display font-bold text-xl uppercase tracking-widest leading-none">{userId}</span>
+            <span className="text-[10px] font-mono font-bold opacity-80">1540 ELO</span>
+          </div>
+          
+          <div className="flex flex-col items-center flex-1">
+            <span className="font-display text-3xl font-black tracking-widest tabular-nums animate-pulse">{formatTime(matchTime)}</span>
+            <div className="flex gap-2 items-center mt-1">
+                <span className="text-[10px] font-mono border border-black px-1 uppercase tracking-widest font-bold">1v1 RANKED</span>
+                <span className="text-[10px] font-mono uppercase tracking-widest font-bold">{activeProblem.topic}</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col text-right">
+            <span className="font-display font-bold text-xl uppercase tracking-widest leading-none text-red-900">{opponent?.id || 'OPPONENT'}</span>
+            <span className="text-[10px] font-mono font-bold text-red-900 opacity-80">{opponent?.elo || '???'} ELO</span>
+          </div>
+        </div>
+
+        {/* Battle Workspace */}
+        <div className="flex-1 flex bg-background min-w-0">
+          
+          {/* Left: Problem Desc */}
+          <div className="w-[30%] flex flex-col border-r border-black bg-surface relative z-10">
+            <div className="p-4 border-b border-black">
+                <h2 className="font-display font-bold text-lg uppercase tracking-widest truncate">{activeProblem.title}</h2>
+            </div>
+            <div className="p-6 flex-1 overflow-auto opacity-90 font-sans tracking-wide leading-relaxed text-sm scrollbar-hide">
+                <div className="flex items-center gap-2 mb-6">
+                    <span className="bg-black text-primary text-[10px] px-2 py-1 font-mono">{activeProblem.difficulty}</span>
+                </div>
+                
+                <p className="mb-6 font-mono text-sm leading-relaxed border-l-2 border-primary pl-4">{activeProblem.desc}</p>
+                
+                <div className="bg-background border border-black p-4 mt-8">
+                    <h3 className="font-mono text-xs text-text-muted mb-2">[CONSTRAINTS]</h3>
+                    <ul className="list-disc list-inside font-mono text-xs opacity-80 space-y-1">
+                        {activeProblem.constraints?.map((c: string, i: number) => <li key={i}>{c}</li>)}
+                    </ul>
+                </div>
+            </div>
+          </div>
+          
+          {/* Right: Code Editor & Terminal */}
+          <div className="flex-1 flex flex-col relative min-w-0">
+             <div className="flex items-center justify-between px-4 py-2 border-b border-black bg-surface text-xs font-mono select-none">
+                <span className="text-primary border-b border-primary pb-1 font-bold">combat_logic.js</span>
+             </div>
+
+             <div className="flex-1 relative">
+               <Editor
+                 height="100%"
+                 defaultLanguage="javascript"
+                 theme="vs-dark"
+                 value={code}
+                 onChange={(val) => setCode(val || '')}
+                 options={{
+                   minimap: { enabled: false },
+                   fontFamily: 'JetBrains Mono',
+                   fontSize: 14,
+                   renderLineHighlight: 'none',
+                   hideCursorInOverviewRuler: true
+                 }}
+               />
+             </div>
+             
+             {/* Terminal */}
+             <div className="h-48 border-t border-black flex flex-col bg-background">
+                <div className="flex items-center justify-between p-2 border-b border-black font-mono text-[10px] text-text-muted">
+                    <span className="animate-pulse">{'>_'} ARENA_CONSOLE</span>
+                    <button 
+                        onClick={handleRunCode}
+                        className="bg-primary text-black font-bold px-8 py-2 hover:bg-white transition-colors"
+                    >
+                        FIRE PAYLOAD
+                    </button>
+                </div>
+                <div className="p-4 font-mono text-xs flex flex-col gap-1 h-full overflow-auto scrollbar-hide">
+                    {logs.map((log, i) => {
+                        let color = 'text-text-muted';
+                        if (log.includes('ACCEPTED')) color = 'text-[#00FF9D] font-bold';
+                        else if (log.includes('WRONG_ANSWER')) color = 'text-primary font-bold';
+                        else if (log.includes('ARENA SYS')) color = 'text-lavender';
+                        return <span key={i} className={color}>{log}</span>;
+                    })}
+                    <div ref={logsEndRef} />
+                </div>
+             </div>
+          </div>
+          
+        </div>
+      </div>
+    );
+  }
+
+  // ==== QUEUE / MATCHED SCREEN ====
   return (
     <div className="flex-1 w-full flex bg-background relative overflow-hidden">
       {/* Left Column - Deep Black */}
-      <div className="flex-1 relative border-r-2 border-primary/20 flex flex-col justify-center p-12">
+      <div className="flex-1 relative border-r border-black flex flex-col justify-center p-12">
         <h1 className="text-[12vw] font-display text-surface font-bold leading-none select-none relative z-0">
           WAITING.
         </h1>
         
-        <div className="absolute top-1/2 -translate-y-1/2 left-12 z-10 font-mono text-sm tracking-widest text-text-muted border brutalist-border p-6 w-80 bg-background">
+        <div className="absolute top-1/2 -translate-y-1/2 left-12 z-10 font-mono text-sm tracking-widest text-text-muted border border-black p-6 w-80 bg-background shadow-2xl">
           <div className="mb-4 text-primary w-fit border-b border-primary pb-1">[QUEUE_STATUS]</div>
           <div className="flex justify-between"><span>MODE:</span> <span>1v1 ELO BATTLE</span></div>
           <div className="flex justify-between"><span>MAP:</span> <span>{topic}</span></div>
           <div className="flex justify-between"><span>TIME:</span> <span>{formatTime(queueTime)}</span></div>
-          <div className="mt-6 flex gap-2">
-            <span className="text-primary animate-pulse w-3 h-3 bg-primary block rounded-full mt-1.5" />
-            <span className="animate-pulse">Listening for sockets...</span>
+          <div className="mt-6 flex gap-2 items-center">
+            <span className="text-primary animate-pulse w-3 h-3 bg-primary block rounded-full" />
+            <span className="animate-pulse opacity-70">Listening for sockets...</span>
           </div>
         </div>
       </div>
@@ -91,9 +257,9 @@ export default function Arena() {
         initial={{ x: '100%' }}
         animate={{ x: matchFound ? '0%' : '100%' }}
         transition={{ type: "spring", damping: 15 }}
-        className="absolute top-0 right-0 bottom-0 w-1/2 bg-primary flex flex-col justify-center p-12 border-l-4 border-black box-shadow-xl"
+        className="absolute top-0 right-0 bottom-0 w-1/2 bg-primary flex flex-col justify-center p-12 border-l border-black shadow-[-20px_0_50px_rgba(255,51,102,0.1)] z-20"
       >
-        <h1 className="text-[12vw] font-display text-black font-black leading-none select-none opacity-90 -rotate-2">
+        <h1 className="text-[12vw] font-display text-black font-black leading-none select-none opacity-90 -rotate-2 mix-blend-overlay">
           MATCHED.
         </h1>
         
@@ -102,9 +268,9 @@ export default function Arena() {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="absolute top-1/2 -translate-y-1/2 right-12 z-10 w-96 border-2 border-black p-6 bg-primary text-black"
+            className="absolute top-1/2 -translate-y-1/2 right-12 z-30 w-96 border-2 border-black p-6 bg-primary text-black shadow-[10px_10px_0px_rgba(0,0,0,1)]"
           >
-            <div className="mb-4 text-black font-bold border-b-2 border-black pb-1 uppercase tracking-widest flex items-center justify-between">
+            <div className="mb-4 text-black font-bold border-b border-black pb-1 uppercase tracking-widest flex items-center justify-between">
               <span>[TARGET_ACQUIRED]</span>
               <span className="font-mono text-xs font-bold leading-none">{'>_'}</span>
             </div>
@@ -113,12 +279,12 @@ export default function Arena() {
               <span>RANK:</span>
               <span>{opponent.elo} (DIAMOND)</span>
             </div>
-            <div className="mt-8 border-t-2 border-black pt-4">
+            <div className="mt-8 border-t border-black pt-4">
               <button 
-                onClick={() => navigate('/workspace')} 
-                className="w-full bg-black text-primary p-4 font-display font-bold text-xl clip-chamfer hover:bg-surface transition-colors focus:ring-4 ring-black/30"
+                onClick={() => setBattleStarted(true)} 
+                className="w-full bg-black text-primary p-4 font-display font-bold text-xl uppercase hover:bg-white hover:text-black transition-colors"
               >
-                ENTER {topic}
+                ENTER COMBAT
               </button>
             </div>
           </motion.div>
