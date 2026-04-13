@@ -21,4 +21,7 @@ function getBackendUrl() {
 }
 
 export const BACKEND_URL = getBackendUrl();
-export const socket: Socket = io(BACKEND_URL);
+export const socket: Socket = io(BACKEND_URL, {
+  transports: ['websocket'],
+  upgrade: false
+});
