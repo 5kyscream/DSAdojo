@@ -13,7 +13,13 @@ const PROBLEMS = [
   { id: 'P3', title: 'Subnet Routing', topic: 'DYNAMIC_PROGRAMMING', difficulty: 'HARD', expectedTimeMs: 1200000, desc: 'Maximize the total bandwidth routed through recursive subnets without exceeding node limits.', constraints: ['Edges <= 50000'] },
   { id: 'P4', title: 'Binary Tree Inversion', topic: 'TREES', difficulty: 'EASY', expectedTimeMs: 300000, desc: 'Invert a binary data structure to bypass access authorization.', constraints: ['Nodes <= 10^4'] },
   { id: 'P5', title: 'Cycle Detection Protocol', topic: 'LINKED_LISTS', difficulty: 'MEDIUM', expectedTimeMs: 400000, desc: 'Detect infinite loops within linear memory sequence pointers.', constraints: ['Nodes <= 10^4'] },
-  { id: 'P6', title: 'Palindrome Substring Extraction', topic: 'STRINGS', difficulty: 'MEDIUM', expectedTimeMs: 500000, desc: 'Find the longest symmetric payload embedded within a data string.', constraints: ['Length <= 1000'] }
+  { id: 'P6', title: 'Palindrome Substring Extraction', topic: 'STRINGS', difficulty: 'MEDIUM', expectedTimeMs: 500000, desc: 'Find the longest symmetric payload embedded within a data string.', constraints: ['Length <= 1000'] },
+  { id: 'P7', title: 'Topological Sort Protocol', topic: 'GRAPHS', difficulty: 'MEDIUM', expectedTimeMs: 400000, desc: 'Determine the correct execution order of dependent operational modules.', constraints: ['V <= 10^4'] },
+  { id: 'P8', title: 'Two Sum Cipher', topic: 'ARRAYS', difficulty: 'EASY', expectedTimeMs: 120000, desc: 'Find two memory sector addresses that sum up to the target hash value.', constraints: ['N <= 10^5'] },
+  { id: 'P9', title: 'Knapsack Saturation', topic: 'DYNAMIC_PROGRAMMING', difficulty: 'HARD', expectedTimeMs: 1000000, desc: 'Maximize the value of uploaded data without exceeding the packet payload capacity.', constraints: ['Items <= 1000', 'Capacity <= 50000'] },
+  { id: 'P10', title: 'Lowest Common Ancestor Node', topic: 'TREES', difficulty: 'MEDIUM', expectedTimeMs: 450000, desc: 'Find the closest shared parent node to reconnect two isolated sub-networks.', constraints: ['Nodes <= 10^5'] },
+  { id: 'P11', title: 'Reverse Pointer Injection', topic: 'LINKED_LISTS', difficulty: 'EASY', expectedTimeMs: 180000, desc: 'Reverse the direction of sequential memory pointers to retrieve the hidden payload.', constraints: ['Nodes <= 5000'] },
+  { id: 'P12', title: 'Longest Valid Substring', topic: 'STRINGS', difficulty: 'HARD', expectedTimeMs: 900000, desc: 'Extract the longest sequence of valid operational characters from corrupted output.', constraints: ['Length <= 10^5'] }
 ];
 
 export default function Arena() {
@@ -206,12 +212,20 @@ export default function Arena() {
              <div className="h-48 border-t border-black flex flex-col bg-background">
                 <div className="flex items-center justify-between p-2 border-b border-black font-mono text-[10px] text-text-muted">
                     <span className="animate-pulse">{'>_'} ARENA_CONSOLE</span>
-                    <button 
-                        onClick={handleRunCode}
-                        className="bg-primary text-black font-bold px-8 py-2 hover:bg-white transition-colors"
-                    >
-                        FIRE PAYLOAD
-                    </button>
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={() => navigate('/dashboard')}
+                            className="bg-background text-primary border border-primary px-4 py-2 hover:bg-primary hover:text-black transition-colors font-bold uppercase"
+                        >
+                            ABORT
+                        </button>
+                        <button 
+                            onClick={handleRunCode}
+                            className="bg-primary text-black font-bold px-8 py-2 hover:bg-white transition-colors"
+                        >
+                            FIRE PAYLOAD
+                        </button>
+                    </div>
                 </div>
                 <div className="p-4 font-mono text-xs flex flex-col gap-1 h-full overflow-auto scrollbar-hide">
                     {logs.map((log, i) => {
@@ -245,9 +259,12 @@ export default function Arena() {
           <div className="flex justify-between"><span>MODE:</span> <span>1v1 ELO BATTLE</span></div>
           <div className="flex justify-between"><span>MAP:</span> <span>{topic}</span></div>
           <div className="flex justify-between"><span>TIME:</span> <span>{formatTime(queueTime)}</span></div>
-          <div className="mt-6 flex gap-2 items-center">
-            <span className="text-primary animate-pulse w-3 h-3 bg-primary block rounded-full" />
-            <span className="animate-pulse opacity-70">Listening for sockets...</span>
+          <div className="mt-6 flex justify-between items-center">
+            <div className="flex gap-2 items-center">
+              <span className="text-primary animate-pulse w-3 h-3 bg-primary block rounded-full" />
+              <span className="animate-pulse opacity-70">Listening for sockets...</span>
+            </div>
+            <button onClick={() => navigate('/dashboard')} className="text-xs font-bold text-primary hover:text-white underline">ABORT</button>
           </div>
         </div>
       </div>

@@ -9,7 +9,13 @@ const PROBLEMS = [
   { id: 'P3', title: 'Subnet Routing', topic: 'DYNAMIC_PROGRAMMING', difficulty: 'HARD', expectedTimeMs: 1200000, desc: 'Maximize the total bandwidth routed through recursive subnets without exceeding node limits.', constraints: ['Edges <= 50000'] },
   { id: 'P4', title: 'Binary Tree Inversion', topic: 'TREES', difficulty: 'EASY', expectedTimeMs: 300000, desc: 'Invert a binary data structure to bypass access authorization.', constraints: ['Nodes <= 10^4'] },
   { id: 'P5', title: 'Cycle Detection Protocol', topic: 'LINKED_LISTS', difficulty: 'MEDIUM', expectedTimeMs: 400000, desc: 'Detect infinite loops within linear memory sequence pointers.', constraints: ['Nodes <= 10^4'] },
-  { id: 'P6', title: 'Palindrome Substring Extraction', topic: 'STRINGS', difficulty: 'MEDIUM', expectedTimeMs: 500000, desc: 'Find the longest symmetric payload embedded within a data string.', constraints: ['Length <= 1000'] }
+  { id: 'P6', title: 'Palindrome Substring Extraction', topic: 'STRINGS', difficulty: 'MEDIUM', expectedTimeMs: 500000, desc: 'Find the longest symmetric payload embedded within a data string.', constraints: ['Length <= 1000'] },
+  { id: 'P7', title: 'Topological Sort Protocol', topic: 'GRAPHS', difficulty: 'MEDIUM', expectedTimeMs: 400000, desc: 'Determine the correct execution order of dependent operational modules.', constraints: ['V <= 10^4'] },
+  { id: 'P8', title: 'Two Sum Cipher', topic: 'ARRAYS', difficulty: 'EASY', expectedTimeMs: 120000, desc: 'Find two memory sector addresses that sum up to the target hash value.', constraints: ['N <= 10^5'] },
+  { id: 'P9', title: 'Knapsack Saturation', topic: 'DYNAMIC_PROGRAMMING', difficulty: 'HARD', expectedTimeMs: 1000000, desc: 'Maximize the value of uploaded data without exceeding the packet payload capacity.', constraints: ['Items <= 1000', 'Capacity <= 50000'] },
+  { id: 'P10', title: 'Lowest Common Ancestor Node', topic: 'TREES', difficulty: 'MEDIUM', expectedTimeMs: 450000, desc: 'Find the closest shared parent node to reconnect two isolated sub-networks.', constraints: ['Nodes <= 10^5'] },
+  { id: 'P11', title: 'Reverse Pointer Injection', topic: 'LINKED_LISTS', difficulty: 'EASY', expectedTimeMs: 180000, desc: 'Reverse the direction of sequential memory pointers to retrieve the hidden payload.', constraints: ['Nodes <= 5000'] },
+  { id: 'P12', title: 'Longest Valid Substring', topic: 'STRINGS', difficulty: 'HARD', expectedTimeMs: 900000, desc: 'Extract the longest sequence of valid operational characters from corrupted output.', constraints: ['Length <= 10^5'] }
 ];
 
 const TOPICS = ['ALL', 'GRAPHS', 'DYNAMIC_PROGRAMMING', 'ARRAYS', 'TREES', 'LINKED_LISTS', 'STRINGS'];
