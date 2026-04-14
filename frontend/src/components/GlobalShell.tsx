@@ -67,7 +67,7 @@ export default function GlobalShell() {
       </header>
 
       {/* Main Content Area */}
-      <main className="relative z-10 flex-1 flex">
+      <main className="relative z-10 flex-1 flex min-h-0">
         <Outlet />
       </main>
 

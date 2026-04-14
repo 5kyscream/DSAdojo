@@ -105,11 +105,11 @@ export default function Workspace() {
   });
 
   return (
-    <div className="flex-1 w-full h-full flex bg-background overflow-hidden relative">
+    <div className="flex-1 w-full h-full flex bg-background overflow-hidden relative min-h-0">
       
       {/* Collapsible Left Sidebar - Problem List */}
       <div 
-        className={`bg-surface border-r border-black flex flex-col transition-all duration-300 ${isSidebarOpen ? 'w-80' : 'w-0 overflow-hidden'}`}
+        className={`bg-surface border-r border-black flex flex-col min-h-0 transition-all duration-300 ${isSidebarOpen ? 'w-80' : 'w-0 overflow-hidden'}`}
       >
         <div className="p-4 border-b border-black">
           <div className="flex items-center gap-2 text-primary font-display font-bold mb-4 uppercase tracking-widest">
@@ -171,10 +171,10 @@ export default function Workspace() {
       </button>
 
       {/* Middle/Right Container */}
-      <div className="flex-1 flex bg-background min-w-0">
+      <div className="flex-1 flex bg-background min-w-0 min-h-0">
         
         {/* Middle: Problem Description */}
-        <div className="w-[35%] flex flex-col border-r border-black relative z-10 bg-background/90 min-w-0">
+        <div className="w-[35%] flex flex-col min-h-0 border-r border-black relative z-10 bg-background/90 min-w-0">
           <div className="p-4 border-b border-black flex items-center justify-between">
             <h2 className="font-display font-bold text-xl uppercase tracking-widest truncate">{activeProblem.title}</h2>
           </div>
@@ -213,7 +213,7 @@ export default function Workspace() {
         </div>
 
         {/* Right: Code Editor & Exec Console */}
-        <div className="flex-1 flex flex-col relative min-w-0">
+        <div className="flex-1 flex flex-col relative min-w-0 min-h-0">
           
           <div className="flex items-center justify-between px-4 py-2 border-b border-black bg-surface text-xs font-mono select-none">
             <div className="flex gap-4">

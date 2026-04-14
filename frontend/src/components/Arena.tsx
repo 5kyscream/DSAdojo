@@ -139,7 +139,7 @@ export default function Arena() {
   // ==== BATTLE SCREEN ====
   if (battleStarted && activeProblem) {
     return (
-      <div className="flex-1 w-full h-full flex flex-col bg-background overflow-hidden relative">
+      <div className="flex-1 w-full h-full flex flex-col bg-background overflow-hidden relative min-h-0">
         {/* Battle Header */}
         <div className="bg-primary text-black p-4 flex justify-between items-center border-b border-black">
           <div className="flex flex-col">
@@ -162,10 +162,10 @@ export default function Arena() {
         </div>
 
         {/* Battle Workspace */}
-        <div className="flex-1 flex bg-background min-w-0">
+        <div className="flex-1 flex bg-background min-w-0 min-h-0">
           
           {/* Left: Problem Desc */}
-          <div className="w-[30%] flex flex-col border-r border-black bg-surface relative z-10">
+          <div className="w-[30%] flex flex-col min-h-0 border-r border-black bg-surface relative z-10">
             <div className="p-4 border-b border-black">
                 <h2 className="font-display font-bold text-lg uppercase tracking-widest truncate">{activeProblem.title}</h2>
             </div>
@@ -186,7 +186,7 @@ export default function Arena() {
           </div>
           
           {/* Right: Code Editor & Terminal */}
-          <div className="flex-1 flex flex-col relative min-w-0">
+          <div className="flex-1 flex flex-col relative min-w-0 min-h-0">
              <div className="flex items-center justify-between px-4 py-2 border-b border-black bg-surface text-xs font-mono select-none">
                 <span className="text-primary border-b border-primary pb-1 font-bold">combat_logic.js</span>
              </div>
