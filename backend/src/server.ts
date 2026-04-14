@@ -96,7 +96,7 @@ io.on('connection', (socket: Socket) => {
   });
 
   // 2. Code Execution Mock Runtime Listener
-  socket.on('SUBMIT_CODE', async (data: { code: string; problemId: string, userId: string, timeSpent: number }) => {
+  socket.on('SUBMIT_CODE', async (data: { code: string; problemId: string, userId: string, timeSpent: number, roomId?: string }) => {
     console.log(`[EXEC] Running task ${data.problemId} for ${data.userId} - Time: ${data.timeSpent}s`);
     
     const prob = PROBLEMS.find(p => p.id === data.problemId) || PROBLEMS[0];
@@ -118,6 +118,11 @@ io.on('connection', (socket: Socket) => {
     setTimeout(async () => {
       if (data.code.includes('return true')) {
         socket.emit('EXEC_RESULT', { status: 'ACCEPTED', time: '14ms', mem: '42MB' });
+        
+        if (data.roomId) {
+            console.log(`[MATCH] Room ${data.roomId} concluded. Winner: ${data.userId}`);
+            io.to(data.roomId).emit('MATCH_OVER', { winnerId: data.userId });
+        }
       } else {
         socket.emit('EXEC_RESULT', { status: 'WRONG_ANSWER', msg: 'Failed testcase 12/54' });
         

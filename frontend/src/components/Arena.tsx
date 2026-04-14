@@ -37,6 +37,8 @@ export default function Arena() {
   const [logs, setLogs] = useState<string[]>(['[ARENA SYS] Match initialized. Link established.']);
   const logsEndRef = useRef<HTMLDivElement>(null);
   const [matchTime, setMatchTime] = useState(0);
+  const [roomId, setRoomId] = useState<string | null>(null);
+  const [matchResult, setMatchResult] = useState<'WINNER' | 'DEFEAT' | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -49,6 +51,7 @@ export default function Arena() {
 
     socket.on('MATCH_FOUND', (data) => {
       setOpponent(data.opponent);
+      setRoomId(data.roomId);
       setMatchFound(true);
       
       // Auto-pick problem based on topic for the match
@@ -68,11 +71,11 @@ export default function Arena() {
   // Battle Match Timer
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
-    if (battleStarted) {
+    if (battleStarted && !matchResult) {
       interval = setInterval(() => setMatchTime(t => t + 1), 1000);
     }
     return () => clearInterval(interval);
-  }, [battleStarted]);
+  }, [battleStarted, matchResult]);
 
   // Exec Logs hook
   useEffect(() => {
@@ -82,26 +85,38 @@ export default function Arena() {
       if (data.msg) setLogs(prev => [...prev, `[INFO] ${data.msg}`]);
     };
 
+    const handleMatchOver = (data: any) => {
+        if (data.winnerId === userId) {
+            setMatchResult('WINNER');
+        } else {
+            setMatchResult('DEFEAT');
+        }
+    };
+
     socket.on('EXEC_LOG', handleLog);
     socket.on('EXEC_RESULT', handleResult);
+    socket.on('MATCH_OVER', handleMatchOver);
 
     return () => {
       socket.off('EXEC_LOG', handleLog);
       socket.off('EXEC_RESULT', handleResult);
+      socket.off('MATCH_OVER', handleMatchOver);
     };
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs]);
 
   const handleRunCode = () => {
+    if (matchResult) return; // Prevent running if match is over
     setLogs(['[ARENA SYS] Executing combat logic...']);
     socket.emit('SUBMIT_CODE', { 
       code, 
       problemId: activeProblem?.id || 'P1',
       userId,
-      timeSpent: matchTime
+      timeSpent: matchTime,
+      roomId: roomId || undefined
     });
   };
 
@@ -241,6 +256,31 @@ export default function Arena() {
           </div>
           
         </div>
+
+        {/* MATCH RESULT OVERLAY */}
+        {matchResult && (
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', damping: 15 }}
+              className={`absolute inset-0 z-50 flex items-center justify-center p-12 backdrop-blur-sm ${matchResult === 'WINNER' ? 'bg-[#00FF9D]/10' : 'bg-primary/10'}`}
+            >
+               <div className={`p-16 border-4 shadow-[0_0_100px_rgba(0,0,0,0.8)] flex flex-col items-center justify-center bg-background ${matchResult === 'WINNER' ? 'border-[#00FF9D]' : 'border-primary'}`}>
+                    <h1 className={`text-[8vw] font-display font-black leading-none uppercase tracking-widest ${matchResult === 'WINNER' ? 'text-[#00FF9D]' : 'text-primary'}`}>
+                        {matchResult === 'WINNER' ? 'VICTORY' : 'DEFEAT'}
+                    </h1>
+                    <div className="font-mono mt-4 mb-12 text-center text-text-muted">
+                        <p>{matchResult === 'WINNER' ? 'Opponent payload neutralized.' : 'Your core was formatted by the opponent.'}</p>
+                    </div>
+                    <button 
+                        onClick={() => navigate('/dashboard')}
+                        className={`px-12 py-4 font-display font-bold text-2xl text-black hover:bg-white transition-colors ${matchResult === 'WINNER' ? 'bg-[#00FF9D]' : 'bg-primary'}`}
+                    >
+                        RETURN TO DASHBOARD
+                    </button>
+               </div>
+            </motion.div>
+        )}
       </div>
     );
   }
