@@ -124,7 +124,7 @@ io.on('connection', (socket: Socket) => {
         if (ai) {
             socket.emit('AI_MENTOR_HINT', { hint: '[AI] Uplink established. Analyzing combat logic...' });
             try {
-                const prompt = `You are an elite Cyberpunk DSA mentor. The user submitted this code for the problem "${prob.title}" (Topic: ${prob.topic}).\n\nProblem Description: ${prob.desc}\nConstraints: ${prob.constraints.join(', ')}\n\nUser's Code:\n${data.code}\n\nThe code failed execution. Provide exactly ONE concise hint (max 2 sentences) to point them in the right direction. Do NOT write the code answer for them. Keep the tone sharp, professional, and cyberpunk-styled.`;
+                const prompt = `You are an elite Cyberpunk DSA mentor logging into the mainframe. The user submitted this code for the problem "${prob.title}" (Topic: ${prob.topic}).\n\nProblem Description: ${prob.desc}\nConstraints: ${prob.constraints.join(', ')}\n\nUser's Code:\n${data.code}\n\nThe code failed execution.\n\nINSTRUCTIONS:\n1. If the code contains blatant syntax errors, reference errors, or gibberish (like undefined variables), call out the exact syntax failure in a strict cyberpunk tone.\n2. Otherwise, if the logic is just flawed, provide exactly ONE concise hint (max 2 sentences) to point them in the right direction.\n\nDo NOT write the code answer for them under any circumstances. Keep the tone sharp and professional.`;
                 const response = await ai.models.generateContent({
                     model: 'gemini-2.5-flash',
                     contents: prompt
