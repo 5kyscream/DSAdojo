@@ -164,8 +164,8 @@ export default function Workspace() {
       {/* Sidebar Toggle Button */}
       <button 
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="absolute bottom-4 left-0 z-50 bg-primary text-black p-1 border border-black hover:bg-white transition-colors"
-        style={{ transform: `translateX(${isSidebarOpen ? '320px' : '0px'})` }}
+        className="absolute top-1/2 -translate-y-1/2 z-50 bg-primary text-black p-1 border border-black hover:bg-white transition-all duration-300 rounded-r-md shadow-md"
+        style={{ left: isSidebarOpen ? '320px' : '0px' }}
       >
         {isSidebarOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
       </button>
