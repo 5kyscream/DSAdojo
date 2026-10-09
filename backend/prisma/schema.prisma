@@ -11,7 +11,7 @@ model User {
   id               String          @id @default(uuid())
   username         String          @unique
   passwordHash     String
-  elo              Int             @default(1200)
+  elo              Int             @default(0)
   level            String?         // "Beginner", "Intermediate", "Professional"
   createdAt        DateTime        @default(now())
   topicStats       UserTopicStat[]

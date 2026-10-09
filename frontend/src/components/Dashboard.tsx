@@ -8,7 +8,7 @@ export default function Dashboard() {
   const [username, setUsername] = useState('AGENT');
   const [level, setLevel] = useState('CALIBRATING');
   const [showMatchHistory, setShowMatchHistory] = useState(false);
-  const [stats, setStats] = useState({ elo: 1540, wins: 0, losses: 0, history: [] });
+  const [stats, setStats] = useState({ elo: 0, wins: 0, losses: 0, history: [] });
   const navigate = useNavigate();
 
   const handleLogout = async () => {

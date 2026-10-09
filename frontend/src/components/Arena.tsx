@@ -32,8 +32,8 @@ export default function Arena() {
   const [userElo, setUserElo] = useState(() => {
     try {
       const stats = JSON.parse(localStorage.getItem('dsabuddy_stats') || '{}');
-      return stats.elo || 1540;
-    } catch { return 1540; }
+      return stats.elo !== undefined ? stats.elo : 0;
+    } catch { return 0; }
   });
 
   // New Battle States
@@ -74,6 +74,19 @@ export default function Arena() {
     };
   }, [topic, userId]);
 
+  // Bot Matchmaking Fallback
+  useEffect(() => {
+    if (queueTime >= 30 && !matchFound && topic) {
+      setOpponent({ id: 'BOT_0x' + Math.floor(Math.random() * 10000).toString(16).toUpperCase(), elo: userElo });
+      setRoomId('BOT_ROOM_' + Date.now());
+      setMatchFound(true);
+      
+      const p = PROBLEMS.find(p => p.topic === topic) || PROBLEMS[0];
+      setActiveProblem(p);
+      setCode(`function executeMatch(data) {\n  // Target: ${p.title}\n  // Write your logic here\n  return false;\n}`);
+    }
+  }, [queueTime, matchFound, topic, userElo]);
+
   // Battle Match Timer
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
@@ -113,15 +126,15 @@ export default function Arena() {
   // Persist Match Result to LocalStorage
   useEffect(() => {
     if (matchResult && opponent && activeProblem) {
-       try {
-         const statsRaw = localStorage.getItem('dsabuddy_stats');
-         const stats = statsRaw ? JSON.parse(statsRaw) : { elo: 1540, wins: 0, losses: 0, history: [] };
-         
-         const isWin = matchResult === 'WINNER';
-         const eloShift = isWin ? 25 : -25;
-         
-         stats.elo = (stats.elo || 1540) + eloShift;
-         if (isWin) stats.wins = (stats.wins || 0) + 1;
+         try {
+           const statsRaw = localStorage.getItem('dsabuddy_stats');
+           const stats = statsRaw ? JSON.parse(statsRaw) : { elo: 0, wins: 0, losses: 0, history: [] };
+           
+           const isWin = matchResult === 'WINNER';
+           const eloShift = isWin ? 25 : -25;
+           
+           stats.elo = (stats.elo !== undefined ? stats.elo : 0) + eloShift;
+           if (isWin) stats.wins = (stats.wins || 0) + 1;
          else stats.losses = (stats.losses || 0) + 1;
          
          stats.history = stats.history || [];
