@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DSADojo — Project Gantt Chart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-dark:    #050810;
+      --bg-panel:   #0b0f1a;
+      --bg-card:    #0f1525;
+      --border:     #1c2540;
+      --accent-1:   #00f5d4;   /* cyan-mint - PBL-1 */
+      --accent-2:   #7b5ea7;   /* purple    - PBL-2 */
+      --accent-red: #ff4c6a;
+      --text-main:  #e2e8f0;
+      --text-muted: #64748b;
+      --text-dim:   #334155;
+      --glow-1:     rgba(0, 245, 212, 0.18);
+      --glow-2:     rgba(123, 94, 167, 0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 2rem 1.5rem 4rem;
+      background-image:
+        radial-gradient(ellipse 80% 40% at 50% 0%, rgba(0,245,212,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 30% at 80% 80%, rgba(123,94,167,0.07) 0%, transparent 60%);
+    }
+
+    /* ─── HEADER ─────────────────────────────────────── */
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--accent-1), #00c8ff);
+      color: #000;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      padding: 0.3rem 0.9rem;
+      border-radius: 2px;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #fff 0%, var(--accent-1) 60%, #00c8ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.15;
+    }
+
+    .subtitle {
+      margin-top: 0.6rem;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ─── LEGEND ─────────────────────────────────────── */
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+    }
+
+    /* ─── MAIN CHART WRAPPER ─────────────────────────── */
+    .chart-wrapper {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,245,212,0.05);
+    }
+
+    /* ─── TOP BAR ─────────────────────────────────────── */
+    .chart-header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 1.2rem 1.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .chart-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent-1);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .phase-pills {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .pill {
+      padding: 0.25rem 0.75rem;
+      border-radius: 100px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      cursor: default;
+    }
+
+    .pill-1 { background: rgba(0,245,212,0.12); color: var(--accent-1); border: 1px solid rgba(0,245,212,0.3); }
+    .pill-2 { background: rgba(123,94,167,0.12); color: #b39ddb; border: 1px solid rgba(123,94,167,0.3); }
+
+    /* ─── GANTT GRID ──────────────────────────────────── */
+    .gantt-body {
+      padding: 1.5rem;
+      overflow-x: auto;
+    }
+
+    .gantt-grid {
+      display: grid;
+      /* col 1 = labels, col 2-10 = weeks */
+      grid-template-columns: 220px repeat(9, 1fr);
+      min-width: 700px;
+      row-gap: 0;
+    }
+
+    /* Week header row */
+    .gh-cell {
+      padding: 0.45rem 0.3rem;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .gh-label {
+      text-align: left;
+      padding-left: 0;
+      font-size: 0.68rem;
+      color: var(--text-dim);
+    }
+
+    /* Month separator labels */
+    .month-header {
+      grid-column: span 9;
+      /* filled dynamically */
+    }
+
+    /* Phase section headers */
+    .phase-row {
+      grid-column: 1 / -1;
+      padding: 0.6rem 0.5rem 0.4rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .phase-row::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 14px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .phase-row.pbl1 { color: var(--accent-1); border-top: 1px solid rgba(0,245,212,0.1); }
+    .phase-row.pbl1::before { background: var(--accent-1); }
+    .phase-row.pbl2 { color: #b39ddb; border-top: 1px solid rgba(123,94,167,0.15); }
+    .phase-row.pbl2::before { background: var(--accent-2); }
+
+    /* Task rows */
+    .task-label {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0.6rem 0.5rem;
+      border-bottom: 1px solid rgba(28,37,64,0.5);
+    }
+
+    .task-name {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .task-meta {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 2px;
+    }
+
+    .task-cell {
+      border-bottom: 1px solid rgba(28,37,64,0.5);
+      padding: 0.6rem 0.2rem;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Alternating row tint */
+    .task-row-even .task-label,
+    .task-row-even .task-cell {
+      background: rgba(255,255,255,0.012);
+    }
+
+    /* Gantt bar */
+    .bar {
+      height: 22px;
+      border-radius: 3px;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.15s, filter 0.15s;
+    }
+
+    .bar:hover { transform: scaleY(1.15); filter: brightness(1.25); }
+
+    .bar::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+    }
+
+    .bar-pbl1 {
+      background: linear-gradient(90deg, #00f5d4cc, #00c8ffcc);
+      box-shadow: 0 0 14px rgba(0,245,212,0.4);
+    }
+
+    .bar-pbl2 {
+      background: linear-gradient(90deg, #7b5ea7cc, #b39ddbcc);
+      box-shadow: 0 0 14px rgba(123,94,167,0.4);
+    }
+
+    .bar-ongoing {
+      background: linear-gradient(90deg, #ff4c6add, #ff8c42dd);
+      box-shadow: 0 0 14px rgba(255,76,106,0.4);
+      animation: pulse-bar 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-bar {
+      0%, 100% { filter: brightness(1); }
+      50%       { filter: brightness(1.35); }
+    }
+
+    /* Empty cell bg lines */
+    .task-cell::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent 0%,
+        transparent calc(100% - 1px),
+        rgba(28,37,64,0.4) calc(100% - 1px),
+        rgba(28,37,64,0.4) 100%
+      );
+      pointer-events: none;
+    }
+
+    /* TODAY marker */
+    .today-marker {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--accent-red);
+      z-index: 10;
+      box-shadow: 0 0 8px var(--accent-red);
+      pointer-events: none;
+    }
+
+    /* ─── STATS CARDS ────────────────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      max-width: 1100px;
+      margin: 2rem auto 0;
+    }
+
+    .stat-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.2rem 1.4rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .stat-card:hover { border-color: rgba(0,245,212,0.3); transform: translateY(-2px); }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+
+    .stat-card.c1::before { background: linear-gradient(90deg, var(--accent-1), #00c8ff); }
+    .stat-card.c2::before { background: linear-gradient(90deg, var(--accent-2), #b39ddb); }
+    .stat-card.c3::before { background: linear-gradient(90deg, var(--accent-red), #ff8c42); }
+    .stat-card.c4::before { background: linear-gradient(90deg, #fff, #aaa); }
+
+    .stat-num {
+      font-size: 2rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1;
+    }
+
+    .c1 .stat-num { color: var(--accent-1); }
+    .c2 .stat-num { color: #b39ddb; }
+    .c3 .stat-num { color: var(--accent-red); }
+    .c4 .stat-num { color: var(--text-main); }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+    }
+
+    /* ─── TOOLTIP ────────────────────────────────────── */
+    .tooltip {
+      position: fixed;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.7rem 1rem;
+      font-size: 0.75rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 999;
+      max-width: 220px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    .tooltip.visible { opacity: 1; }
+    .tooltip-title { font-weight: 600; margin-bottom: 0.3rem; color: var(--text-main); }
+    .tooltip-detail { color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; }
+
+    /* ─── FOOTER ─────────────────────────────────────── */
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="badge">PBL I &amp; II · Manipal University Jaipur</div>
+  <h1>DSADojo — Project Timeline</h1>
+  <p class="subtitle">// Tactical DSA Platform · Gantt Breakdown · Oct 2025 → Apr 2026</p>
+</header>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#00f5d4,#00c8ff)"></div>PBL‑1 Phases</div>
+  <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#7b5ea7,#b39ddb)"></div>PBL‑2 Phases</div>
+  <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#ff4c6a,#ff8c42)"></div>Active / Ongoing</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ff4c6a;border-radius:50%"></div>Today</div>
+</div>
+
+<!-- GANTT CHART -->
+<div class="chart-wrapper">
+  <div class="chart-header">
+    <span class="chart-title">// gantt_chart.md — dsadojo_v1</span>
+    <div class="phase-pills">
+      <span class="pill pill-1">PBL‑1 ✓ Complete</span>
+      <span class="pill pill-2">PBL‑2 ⟳ In Progress</span>
+    </div>
+  </div>
+
+  <div class="gantt-body">
+    <div class="gantt-grid" id="ganttGrid">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat-card c1">
+    <div class="stat-num">5</div>
+    <div class="stat-label">PBL‑1 Phases Completed</div>
+  </div>
+  <div class="stat-card c2">
+    <div class="stat-num">4</div>
+    <div class="stat-label">PBL‑2 Phases Planned</div>
+  </div>
+  <div class="stat-card c3">
+    <div class="stat-num">~24wk</div>
+    <div class="stat-label">Total Project Duration</div>
+  </div>
+  <div class="stat-card c4">
+    <div class="stat-num">100%</div>
+    <div class="stat-label">PBL‑1 Milestone Hit Rate</div>
+  </div>
+</div>
+
+<!-- TOOLTIP -->
+<div class="tooltip" id="tooltip">
+  <div class="tooltip-title" id="tooltipTitle"></div>
+  <div class="tooltip-detail" id="tooltipDetail"></div>
+</div>
+
+<footer>generated by antigravity · DSADojo · 2026</footer>
+
+<script>
+  /* ── DATA ───────────────────────────────────────────────
+     Weeks are numbered 1-9 mapping to the columns.
+     week 1 = Oct W1, week 2 = Oct W2, week 3 = Oct W3, week 4 = Oct W4
+     week 5 = Nov W1, week 6 = Nov W2, week 7 = Nov W3, week 8 = Nov W4
+     week 9 = Dec – Apr (represented collapsed)
+  ─────────────────────────────────────────────────────── */
+  const WEEKS = [
+    { label: 'Oct W1',  month: 'October 2025'  },
+    { label: 'Oct W2',  month: 'October 2025'  },
+    { label: 'Oct W3',  month: 'October 2025'  },
+    { label: 'Oct W4',  month: 'October 2025'  },
+    { label: 'Nov W1',  month: 'November 2025' },
+    { label: 'Nov W2',  month: 'November 2025' },
+    { label: 'Dec–Jan', month: 'Dec 2025–Jan 2026' },
+    { label: 'Feb–Mar', month: 'Feb–Mar 2026' },
+    { label: 'Apr+',    month: 'April 2026'    },
+  ];
+
+  const PHASES = [
+    {
+      name: 'PBL-1 — Core Development',
+      cls: 'pbl1',
+      tasks: [
+        {
+          id: 'p11',
+          name: 'Requirement Analysis',
+          meta: 'Phase 1.1',
+          start: 1, end: 1,
+          type: 'pbl1',
+          desc: 'Identified pain points in LeetCode / Codeforces. Defined user stories and competitive scope.',
+        },
+        {
+          id: 'p12',
+          name: 'UI/UX Wireframing',
+          meta: 'Phase 1.2',
+          start: 2, end: 2,
+          type: 'pbl1',
+          desc: 'Designed Brutalist "Tactical Dashboard", Arena and Workspace mockups in Figma.',
+        },
+        {
+          id: 'p13',
+          name: 'Backend & DB Setup',
+          meta: 'Phase 1.3',
+          start: 3, end: 4,
+          type: 'pbl1',
+          desc: 'Node.js + Express server, Prisma schema for ELO/user data, Supabase PostgreSQL, Redis queues.',
+        },
+        {
+          id: 'p14',
+          name: 'Matchmaking Engine',
+          meta: 'Phase 1.4',
+          start: 5, end: 5,
+          type: 'pbl1',
+          desc: 'Socket.io topic-segmented queue. Redis ZSETs for ELO rating bands. Room creation and lifecycle.',
+        },
+        {
+          id: 'p15',
+          name: 'AI Mentor Integration',
+          meta: 'Phase 1.5',
+          start: 6, end: 6,
+          type: 'pbl1',
+          desc: 'Gemini API integration. Prompt engineered to deliver tactical hints on Wrong Answer events.',
+        },
+      ],
+    },
+    {
+      name: 'PBL-2 — Advanced Features',
+      cls: 'pbl2',
+      tasks: [
+        {
+          id: 'p21',
+          name: 'Docker Sandbox Execution',
+          meta: 'Phase 2.1',
+          start: 7, end: 7,
+          type: 'pbl2',
+          desc: 'Replace mock execution with containerized code runners via Docker + gVisor for security.',
+        },
+        {
+          id: 'p22',
+          name: 'ML Recommendation Engine',
+          meta: 'Phase 2.2',
+          start: 7, end: 8,
+          type: 'pbl2',
+          desc: 'PyTorch Transformer model training for personalized problem dispensing based on proficiency graph.',
+        },
+        {
+          id: 'p23',
+          name: 'Multiplayer Clans',
+          meta: 'Phase 2.3',
+          start: 8, end: 8,
+          type: 'pbl2',
+          desc: 'Group-based matchmaking, clan ELO, and collective leaderboards.',
+        },
+        {
+          id: 'p24',
+          name: 'Mobile App & Deployment',
+          meta: 'Phase 2.4',
+          start: 9, end: 9,
+          type: 'ongoing',
+          desc: 'Companion mobile app for proficiency stats + AI recommendations. Production deployment & scaling.',
+        },
+      ],
+    },
+  ];
+
+  /* ── TODAY mapping ── April 2026 = week index 9 (1-based) */
+  const TODAY_WEEK = 9;
+
+  /* ── RENDER ───────────────────────────────────────────── */
+  const grid = document.getElementById('ganttGrid');
+
+  function cell(cls, innerHTML = '', extra = {}) {
+    const el = document.createElement('div');
+    el.className = cls;
+    el.innerHTML = innerHTML;
+    Object.assign(el, extra);
+    return el;
+  }
+
+  function buildGrid() {
+    // Header row: empty label col + week cols
+    grid.appendChild(cell('gh-cell gh-label', ''));
+    WEEKS.forEach((w, i) => {
+      const c = cell('gh-cell', w.label);
+      if (i === TODAY_WEEK - 1) c.style.color = 'var(--accent-red)';
+      grid.appendChild(c);
+    });
+
+    let rowParity = 0;
+
+    PHASES.forEach(phase => {
+      // Phase section header (spans full row)
+      const pRow = cell(`phase-row ${phase.cls}`, phase.name);
+      pRow.style.gridColumn = '1 / -1';
+      grid.appendChild(pRow);
+
+      phase.tasks.forEach(task => {
+        const evenCls = rowParity % 2 === 0 ? 'task-row-even' : '';
+        rowParity++;
+
+        // Label cell
+        const lbl = cell(`task-label ${evenCls}`);
+        lbl.innerHTML = `<span class="task-name">${task.name}</span><span class="task-meta">${task.meta}</span>`;
+        grid.appendChild(lbl);
+
+        // Week cells
+        WEEKS.forEach((_, wi) => {
+          const wNum = wi + 1; // 1-based
+          const tc = cell(`task-cell ${evenCls}`);
+
+          if (wNum >= task.start && wNum <= task.end) {
+            const bar = document.createElement('div');
+            bar.className = `bar bar-${task.type}`;
+            bar.dataset.taskId = task.id;
+            bar.dataset.name = task.name;
+            bar.dataset.desc = task.desc;
+            bar.dataset.meta = task.meta;
+            tc.appendChild(bar);
+          }
+
+          // Today marker on the TODAY_WEEK column only
+          if (wNum === TODAY_WEEK) {
+            const marker = document.createElement('div');
+            marker.className = 'today-marker';
+            marker.title = 'Today';
+            tc.style.position = 'relative';
+            tc.appendChild(marker);
+          }
+
+          grid.appendChild(tc);
+        });
+      });
+    });
+  }
+
+  buildGrid();
+
+  /* ── TOOLTIP ──────────────────────────────────────────── */
+  const tooltip = document.getElementById('tooltip');
+  const ttTitle  = document.getElementById('tooltipTitle');
+  const ttDetail = document.getElementById('tooltipDetail');
+
+  document.querySelectorAll('.bar').forEach(bar => {
+    bar.addEventListener('mouseenter', (e) => {
+      ttTitle.textContent  = `${bar.dataset.meta} — ${bar.dataset.name}`;
+      ttDetail.textContent = bar.dataset.desc;
+      tooltip.classList.add('visible');
+    });
+    bar.addEventListener('mousemove', (e) => {
+      tooltip.style.left = `${e.clientX + 14}px`;
+      tooltip.style.top  = `${e.clientY - 10}px`;
+    });
+    bar.addEventListener('mouseleave', () => {
+      tooltip.classList.remove('visible');
+    });
+  });
+
+  /* ── ENTRANCE ANIMATION ───────────────────────────────── */
+  const bars = document.querySelectorAll('.bar');
+  bars.forEach((b, i) => {
+    b.style.opacity = '0';
+    b.style.transform = 'scaleX(0)';
+    b.style.transformOrigin = 'left';
+    setTimeout(() => {
+      b.style.transition = 'opacity 0.5s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+      b.style.opacity = '1';
+      b.style.transform = 'scaleX(1)';
+    }, 300 + i * 120);
+  });
+</script>
+</body>
+</html>

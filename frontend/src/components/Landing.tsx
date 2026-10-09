@@ -12,6 +12,20 @@ export default function Landing() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check for URL hash errors from OAuth callback
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const errorDesc = hashParams.get('error_description');
+    
+    if (errorDesc) {
+      if (errorDesc.includes('Multiple accounts with the same email address')) {
+        setErrorLine('Email already exists. Please log in with the provider you originally used (e.g., Google or Email).');
+      } else {
+        setErrorLine(decodeURIComponent(errorDesc).replace(/\+/g, ' '));
+      }
+      // Clear the hash so it doesn't persist on refresh
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         if (!session.user?.user_metadata?.level) setStep('ONBOARDING');

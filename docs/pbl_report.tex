@@ -1,0 +1,227 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[margin=0.7in]{geometry}
+\usepackage{setspace}
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{titlesec}
+\usepackage{bookmark}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{array}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{xcolor}
+
+% --- Formatting ---
+\setstretch{1.15}
+\hypersetup{hidelinks}
+\titleformat{\chapter}[display]{\large\bfseries\centering}{}{0em}{CHAPTER \thechapter \vspace{10pt} \\ }
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries\itshape}{\thesubsection}{1em}{}
+
+% --- Code Snippet Styling ---
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    commentstyle=\color{green!40!black},
+    keywordstyle=\color{blue},
+    stringstyle=\color{red},
+    frame=single,
+    captionpos=b
+}
+
+\begin{document}
+
+% ==========================================
+% [1] COVER PAGE
+% ==========================================
+\begin{titlepage}
+    \centering
+    \vspace*{1cm}
+    {\large \textbf{A Project Report}} \\
+    \vspace{0.5cm}
+    on \\
+    \vspace{1cm}
+    {\Large \textbf{DSADojo: An AI-Powered Tactical DSA Practice Platform}} \\
+    \vspace{1cm}
+    \textit{carried out as part of the PBL-1 (INT2170) Submitted} \\
+    \vspace{1cm}
+    by \\
+    \vspace{0.5cm}
+    \textbf{<Student Name>} \\
+    \textbf{<Registration Number>} \\
+    \vspace{1.5cm}
+    in partial fulfilment for the award of the degree of \\
+    \vspace{1cm}
+    \textbf{Bachelor of Technology} \\
+    in \\
+    \textbf{Information Technology} \\
+    \vspace{1cm}
+	% Placeholder for Logo
+    \includegraphics[width=0.4\textwidth]{example-image} \\ % Replace with actual logo if available
+	\vspace{0.5cm}
+    \textbf{Manipal University Jaipur} \\
+    \vspace{1cm}
+    \textbf{Department of Information Technology} \\
+    \textbf{MANIPAL UNIVERSITY JAIPUR} \\
+    \textbf{RAJASTHAN, INDIA} \\
+    \vspace{0.5cm}
+    \textbf{Nov 2025}
+\end{titlepage}
+
+% ==========================================
+% [2] ABSTRACT & LISTS (Page 2)
+% ==========================================
+\pagenumbering{roman}
+\newpage
+\begin{center}
+    \textbf{ABSTRACT}
+\end{center}
+\vspace{10pt}
+In the current landscape of computer science education, Data Structures and Algorithms (DSA) form the bedrock of problem-solving expertise. However, traditional practice platforms often suffer from "grind fatigue," where users solve static problems without adaptive feedback or real-time engagement. This leads to a disconnect between theoretical knowledge and its application in high-pressure environments. The objective of this project is to develop \textbf{DSADojo}, a tactical practice platform that gamifies DSA learning through real-time competition and AI-driven mentorship.
+
+The methodology adopted involves a full-stack architecture utilizing \textbf{Node.js} and \textbf{Socket.io} for a real-time matchmaking engine, paired with a \textbf{React-based} brutalist UI. A key innovation is the integration of the **Google Gemini API**, which acts as a tactical mentor, providing contextual hints instead of direct solutions. The significance of this work lies in its ability to transform mundane practice into a competitive "tactical operation," significantly improving user engagement and the acquisition of algorithmic logic through isolated, high-pressure matchmaking scenarios.
+
+\vspace{20pt}
+\listoftables
+\vspace{20pt}
+\listoffigures
+\newpage
+\tableofcontents
+
+% ==========================================
+% [4] CHAPTERS
+% ==========================================
+\newpage
+\pagenumbering{arabic}
+
+\chapter{INTRODUCTION}
+\section{Overview}
+The mastery of Data Structures and Algorithms is the most critical skill for a software engineer. Beyond interview preparation, DSA provides the logic required to optimize complex systems and manage resource constraints efficiently. Modern software development, driven by AI and high-frequency data, demands a "tactical" mindset—the ability to identify the correct data structure and apply it under pressure. DSADojo aims to cultivate this mindset by moving away from static problem sets toward an eSports-inspired practice model.
+
+\section{Problem Statement}
+Existing DSA practice ecosystems like LeetCode or Codeforces, while extensive, often lack three critical elements:
+\begin{enumerate}
+    \item \textbf{High-Pressure Real-time Interaction}: Users typically solve problems in isolation, losing the competitive edge found in actual technical assessments.
+    \item \textbf{Contextual Mentorship}: When a user fails, they either look at the solution (giving up) or get no feedback at all.
+    \item \textbf{Adaptive Engagement}: Static goalposts lead to high drop-off rates for beginning and intermediate learners.
+\end{enumerate}
+
+\section{Objectives}
+The primary objectives of the DSADojo platform are:
+\begin{itemize}
+    \item To implement a real-time matchmaking engine that pairs users in topic-specific coding matches.
+    \item To integrate an AI-powered state-aware mentor that analyzes code failures and provides conceptual hints.
+    \item To create a high-impact, brutalist UI that enhances the user's immersion and focus.
+    \item To build a scalable architecture capable of handling concurrent WebSocket connections and isolated code execution requests.
+\end{itemize}
+
+\section{Scope of Project}
+The project scope includes the development of a web-based platform supporting the core DSA topics (Graphs, Arrays, Linked Lists, DP, etc.). It encompasses the real-time matchmaking lifecycle, the AI hint generation engine, and a secure code editing environment. Future scope includes containerized code execution via Docker/gVisor and a mobile-responsive dashboard.
+
+\chapter{PROPOSED SYSTEM DESIGN \& METHODOLOGY}
+\section{System Architecture}
+The system follows a microservice-oriented architecture designed for low latency and high scalability.
+\begin{itemize}
+    \item \textbf{Frontend (Client Layer)}: Built with React and Vite, utilizing Tailwind CSS V4 for a "brutalist" aesthetic. Transitions are handled via Framer Motion to ensure UI fluidity.
+    \item \textbf{Backend (API \& WS Gateway)}: A Node.js server using Express for REST endpoints and Socket.io for managing the real-time matchmaking lifecycle.
+    \item \textbf{Matchmaking Engine}: Utilizes Redis Sorted Sets (ZSETs) to manage user queues by topic and ELO rating, ensuring fair and rapid pairing.
+    \item \textbf{AI Service}: Interfaces with Google Gemini via a secure gateway to provide LLM-driven "mentor" prompts based on the current problem's context and user's code.
+\end{itemize}
+
+\section{Development Environment}
+\subsection{Hardware Requirements}
+\begin{itemize}
+    \item Processor: Intel Core i5 or AMD Ryzen 5 (Minimum).
+    \item RAM: 8GB (Minimum), 16GB (Recommended).
+    \item Storage: 256GB SSD for rapid build times.
+    \item Network: Stable 10Mbps+ connection for WebSocket testing.
+\end{itemize}
+
+\subsection{Software Requirements}
+\begin{itemize}
+    \item Operating System: Windows 11 / Linux (Ubuntu 22.04).
+    \item Programming Language: TypeScript / JavaScript.
+    \item Backend Framework: Node.js (v18+).
+    \item Database: PostgreSQL (via Supabase) & Redis.
+    \item IDE: Visual Studio Code.
+    \item Version Control: Git.
+\end{itemize}
+
+\section{Methodology}
+The core methodology involves a **Topic-Segmented Matchmaking Loop**. When a user requests a match, they enter a topic queue (e.g., "Graphs"). The backend server checks for another user in the same rating band. Once paired, a match "Room" is created via Socket.io. The system dispenses an algorithmic task, and both users compete to reach the accepted state first.
+
+The **AI Mentorship Logic** triggers upon a "Wrong Answer" state. The backend sends the user's code and problem metadata to the Gemini API with a specific system prompt: *"Act as an elite cyber-mentor. Call out syntax errors strictly, or provide one concise conceptual hint if the logic is flawed. Never provide the code answer."*
+
+\chapter{WORK DONE IN PBL-1}
+\section{Tasks Achieved}
+The following milestones were successfully completed during Phase 1:
+\begin{itemize}
+    \item \textbf{Requirement Analysis}: Identified critical pain points in existing platforms.
+    \item \textbf{UI Architecture}: Designed and implemented the "Tactical Dashboard" and "Arena" components.
+    \item \textbf{Real-time Core}: Developed the Socket.io matchmaking logic for topic-based queues.
+    \item \textbf{AI Integration}: Successfully implemented the Gemini-powered Mentor feedback loop.
+    \item \textbf{Database Schema}: Designed the Prisma/PostgreSQL schema for ELO and proficiency tracking.
+\end{itemize}
+
+\section{Screenshots}
+The following figures demonstrate the current state of the DSADojo prototype.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{dashboard.png}
+    \caption{Tactical Dashboard Interface showing ELO and AI Insights}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{arena.png}
+    \caption{Real-time Arena Matchmaking Queue}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{workspace.png}
+    \caption{Brutalist Workspace with Monaco Editor and AI Mentor Hints}
+\end{figure}
+
+\section{Timeline}
+\begin{table}[H]
+    \centering
+    \caption{PBL-1 Project Timeline}
+    \begin{tabular}{|l|l|l|}
+    \hline
+    \textbf{Phase} & \textbf{Tasks} & \textbf{Duration} \\ \hline
+    Phase 1.1 & Requirement gathering & Oct Week 1 \\ \hline
+    Phase 1.2 & UI/UX Wireframing & Oct Week 2 \\ \hline
+    Phase 1.3 & Backend & Oct Week 3 \\ \hline
+    Phase 1.4 & Matchmaking Implementation & Nov Week 1 \\ \hline
+    Phase 1.5 & AI Integration & Nov Week 2 \\ \hline
+    \end{tabular}
+\end{table}
+
+\chapter{CONCLUSION AND FUTURE PLAN}
+\section{Summary of Phase-1 Outcomes}
+PBL-1 concluded with a fully functional prototype of the DSADojo platform. The core matchmaking engine successfully pairs users by topic, and the eSports-inspired UI delivers an immersive experience. The integration of the AI Mentor has proven to be a unique differentiator, providing high-quality logic hints that traditional platforms lack.
+
+\section{Tasks Planned for PBL-2}
+In the next phase of development, the following features are planned:
+\begin{itemize}
+    \item \textbf{Secure Sandboxing}: Transition from mock execution to containerized code execution using Docker.
+    \item \textbf{ML Recommendation Engine}: Finalize the training of the PyTorch-based Transformer model for personalized problem dispensing.
+    \item \textbf{Multiplayer Clans}: Introduce group-based matchmaking and collective leaderboards.
+    \item \textbf{Mobile Optimization}: Release a companion app for monitoring proficiency stats and AI recommendations.
+\end{itemize}
+
+\begin{thebibliography}{99}
+\bibitem{react} Meta Open Source, "React: A JavaScript library for building user interfaces," 2013. [Online]. Available: https://reactjs.org.
+\bibitem{node} OpenJS Foundation, "Node.js: JavaScript runtime built on Chrome's V8 JavaScript engine," 2009. [Online]. Available: https://nodejs.org.
+\bibitem{socket} socket.io, "Socket.io: Bidirectional and low-latency communication for every platform," 2010. [Online].
+\bibitem{gemini} Google Cloud, "Gemini API: Build next-generation applications with Google’s most capable AI models," 2024. [Online].
+\bibitem{leet} LeetCode, "LeetCode: The World's Leading Online Competitive Programming Platform," 2015. [Online].
+\end{thebibliography}
+
+\end{document}

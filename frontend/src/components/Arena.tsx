@@ -29,6 +29,12 @@ export default function Arena() {
   const [topic, setTopic] = useState<string | null>(null);
   const navigate = useNavigate();
   const [userId] = useState(`USER_${Math.floor(Math.random() * 9000) + 1000}`);
+  const [userElo, setUserElo] = useState(() => {
+    try {
+      const stats = JSON.parse(localStorage.getItem('dsabuddy_stats') || '{}');
+      return stats.elo || 1540;
+    } catch { return 1540; }
+  });
 
   // New Battle States
   const [battleStarted, setBattleStarted] = useState(false);
@@ -47,7 +53,7 @@ export default function Arena() {
 
     if (!topic) return;
 
-    socket.emit('JOIN_QUEUE', { userId, elo: 1540, topic });
+    socket.emit('JOIN_QUEUE', { userId, elo: userElo, topic });
 
     socket.on('MATCH_FOUND', (data) => {
       setOpponent(data.opponent);
@@ -104,6 +110,38 @@ export default function Arena() {
     };
   }, [userId]);
 
+  // Persist Match Result to LocalStorage
+  useEffect(() => {
+    if (matchResult && opponent && activeProblem) {
+       try {
+         const statsRaw = localStorage.getItem('dsabuddy_stats');
+         const stats = statsRaw ? JSON.parse(statsRaw) : { elo: 1540, wins: 0, losses: 0, history: [] };
+         
+         const isWin = matchResult === 'WINNER';
+         const eloShift = isWin ? 25 : -25;
+         
+         stats.elo = (stats.elo || 1540) + eloShift;
+         if (isWin) stats.wins = (stats.wins || 0) + 1;
+         else stats.losses = (stats.losses || 0) + 1;
+         
+         stats.history = stats.history || [];
+         stats.history.unshift({
+             date: new Date().toISOString(),
+             opponent: opponent.id,
+             result: matchResult,
+             topic: activeProblem.topic,
+             eloChange: eloShift,
+             newElo: stats.elo
+         });
+         
+         localStorage.setItem('dsabuddy_stats', JSON.stringify(stats));
+         setUserElo(stats.elo);
+       } catch (err) {
+         console.error('Failed to update stats', err);
+       }
+    }
+  }, [matchResult]);
+
   useEffect(() => {
     logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs]);
@@ -159,7 +197,7 @@ export default function Arena() {
         <div className="bg-primary text-black p-4 flex justify-between items-center border-b border-black">
           <div className="flex flex-col">
             <span className="font-display font-bold text-xl uppercase tracking-widest leading-none">{userId}</span>
-            <span className="text-[10px] font-mono font-bold opacity-80">1540 ELO</span>
+            <span className="text-[10px] font-mono font-bold opacity-80">{userElo} ELO</span>
           </div>
           
           <div className="flex flex-col items-center flex-1">
